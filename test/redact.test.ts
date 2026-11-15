@@ -65,6 +65,10 @@ describe('redaction round trip', () => {
     const out = redactWith('priya  sharma (CCD-55102) should repeat HbA1c. Call 9876543210.', map);
     expect(out).toBe('[NAME 1] ([ID NUMBER 1]) should repeat HbA1c. Call [HIDDEN].');
   });
+  it('ignores labels the model flags as numbers', () => {
+    const text = 'Savings A/c No. 50100234567812';
+    expect(aiSpans(text, [{ text: 'Savings A/c No.', kind: 'account' }])).toEqual([]);
+  });
   it('ignores ordinary dates and amounts the model over-flags', () => {
     const text = 'Due date 25/10/2026, pay ₹4,860.00. DOB 14/03/1992';
     const s = aiSpans(text, [{ text: '25/10/2026', kind: 'other' }, { text: '₹4,860.00', kind: 'other' }, { text: '14/03/1992', kind: 'dob' }]);

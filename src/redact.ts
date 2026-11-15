@@ -196,6 +196,8 @@ export function aiSpans(text: string, items: { text: string; kind: string }[]): 
     // models sometimes "flag" generic words; skip those
     if (/^(the|patient|customer|name|address|date|bank|india|government)$/i.test(value)) continue;
     const kind = (Object.keys(KIND_LABEL) as Kind[]).includes(item.kind as Kind) ? (item.kind as Kind) : 'other';
+    // Number-type details must contain a digit ("Savings A/c No." is a label, not an account).
+    if (['account', 'id', 'phone', 'aadhaar', 'pan', 'card', 'pincode', 'passport', 'dob'].includes(kind) && !/\d/.test(value)) continue;
     // Ordinary dates and amounts matter for understanding the document; only birth dates are personal.
     if (kind !== 'dob' && /^(?:\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}|\d{1,2}[ -][A-Za-z]{3,9}[ -]\d{2,4}|[A-Za-z]{3,9} \d{1,2},? \d{4})$/.test(value)) continue;
     if (/^(?:₹|rs\.?|inr|\$)?\s?[\d,]+(?:\.\d+)?\/?-?$/i.test(value) && kind !== 'account' && kind !== 'id' && kind !== 'phone') continue;
