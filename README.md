@@ -27,7 +27,8 @@ photo / text ──► [on device] Gemini Nano reads the photo (multimodal)
 | Find personal details | Device, plus deterministic rules | `ONLY_ON_DEVICE` with a `responseConstraint` JSON schema |
 | Explain in plain English | Device | `ONLY_ON_DEVICE` with a `responseConstraint` JSON schema |
 | Ask privately | Device, full document | `ONLY_ON_DEVICE` |
-| Translate into 11 languages (Hindi, Telugu, Tamil, Kannada, Malayalam, Marathi, Bengali, Gujarati, Punjabi, Urdu, Spanish) | Cloud, redacted copy only | `ONLY_IN_CLOUD` |
+| Translate into 11 languages (Hindi, Telugu, Tamil, Kannada, Malayalam, Marathi, Bengali, Gujarati, Punjabi, Urdu, Spanish) | **On the device first** (Chrome's built-in Translator), then the cloud with the redacted copy only | Translator API, otherwise `ONLY_IN_CLOUD` |
+| Read the explanation aloud | Device (the system's Indian-language voices) | Web Speech API |
 | Ask Gemini a deeper question | Cloud, redacted copy only | `ONLY_IN_CLOUD` |
 | No on-device model available | Rules redact, then cloud explains the redacted copy | `ONLY_IN_CLOUD` |
 

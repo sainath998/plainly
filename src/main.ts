@@ -17,6 +17,7 @@ import {
   type DeviceState,
 } from './ai';
 import { configured, loadSettings, saveDoc, listDocs, deleteSaved, type SavedDoc } from './firebase';
+import { LANG_CODES, onDeviceTranslation, translateOnDevice, speak } from './translate';
 
 const $ = <T extends HTMLElement = HTMLElement>(sel: string) => document.querySelector(sel) as T;
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
@@ -29,7 +30,7 @@ let spans: Span[] = [];
 const kept = new Set<string>();
 let red: Redaction = { text: '', map: new Map(), count: 0 };
 let explanation: Explanation | null = null; // in English, with real values (never leaves the device)
-let shown: { exp: Explanation; lang: string; where: 'device' | 'cloud'; sent?: string } | null = null;
+let shown: { exp: Explanation; lang: string; where: 'device' | 'cloud'; sent?: string; how?: string } | null = null;
 let image: { data: string; mimeType: string; url: string } | null = null;
 let busy = false;
 
@@ -213,7 +214,8 @@ function renderExplanation() {
   $('#explain').innerHTML = `
     <div class="exp-head">
       <div><p class="eyebrow">${esc(e.from || 'Document')}</p><h2>${esc(e.kind || 'Your document')}</h2></div>
-      ${badge(shown.where, shown.sent)}
+      <div class="head-right">${shown.how ? `<span class="badge dev">🔒 ${esc(shown.how)}</span>` : badge(shown.where, shown.sent)}
+      <button id="btn-speak" class="ghost small-btn">🔊 Read aloud</button></div>
     </div>
     <section class="card lead"><h3>In plain words</h3><p>${esc(e.summary)}</p></section>
     <section class="card"><h3>What you need to do</h3>${list(e.actions, (a) => `<b>${esc(a.what)}</b><span class="when">${esc(a.when)}</span>`, 'Nothing you need to do.')}</section>
@@ -224,6 +226,11 @@ function renderExplanation() {
     ${e.watch_out.length ? `<section class="card warn"><h3>Watch out for</h3>${list(e.watch_out, (w) => esc(w), '')}</section>` : ''}
   `;
   $<HTMLSelectElement>('#lang').value = shown.lang;
+  $('#btn-speak').onclick = () => {
+    const e2 = shown!.exp;
+    const text = [e2.kind, e2.summary, ...e2.actions.map((a) => `${a.what}. ${a.when}.`), ...e2.watch_out].join('. ');
+    if (!speak(text, LANG_CODES[shown!.lang] || 'en')) toast(`No ${shown!.lang} voice is installed on this device.`);
+  };
   $('#lang-note').textContent = '';
   $('#save-row').hidden = !configured;
 }
@@ -235,11 +242,29 @@ async function translate(lang: string) {
     renderExplanation();
     return;
   }
+  const code = LANG_CODES[lang] || 'en';
+  // 1. On-device first: Chrome's built-in Translator keeps even the real details on this computer.
+  const local = await onDeviceTranslation(code);
+  if (local !== 'unavailable') {
+    $('#lang-note').innerHTML = `<span class="spin"></span> Translating on this device…`;
+    try {
+      const fields: string[] = [];
+      mapExplanation(explanation, (s) => (fields.push(s), s));
+      const out = await translateOnDevice(code, fields, (p) => ($('#lang-note').innerHTML = `<span class="spin"></span> Getting the ${lang} model for this device… ${Math.round(p * 100)}%`));
+      let i = 0;
+      shown = { exp: mapExplanation(explanation, () => out[i++]), lang, where: 'device', how: 'Translated on this device with Chrome’s built-in Translator' };
+      renderExplanation();
+      return;
+    } catch (e) {
+      console.warn('[plainly] on-device translation failed, falling back to the cloud', e);
+    }
+  }
+  // 2. Cloud fallback: Gemini sees only the redacted explanation; real details are restored here.
   if (!cloudAvailable()) {
-    $('#lang-note').textContent = 'Translation uses Gemini in the cloud, which needs the Firebase setup (see README).';
+    $('#lang-note').textContent = `${lang} isn’t available on this device, and the cloud needs the Firebase setup (see README).`;
     return;
   }
-  $('#lang-note').innerHTML = `<span class="spin"></span> Translating with Gemini in the cloud. It gets only the redacted version.`;
+  $('#lang-note').innerHTML = `<span class="spin"></span> ${lang} isn’t on this device, so Gemini in the cloud is translating. It gets only the redacted version.`;
   try {
     const redacted = mapExplanation(explanation, (s) => redactWith(s, red.map));
     const out = await translateInCloud(redacted, lang);
