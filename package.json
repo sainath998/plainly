@@ -1,0 +1,27 @@
+{
+  "name": "plainly",
+  "version": "1.0.0",
+  "description": "Understand any document in plain language. Personal details stay on your device; the cloud only ever sees a redacted copy.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "firebase": "^13.3.0"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vite": "^6.4.6",
+    "vitest": "^3.2.7"
+  },
+  "private": true,
+  "allowScripts": {
+    "esbuild@0.25.12": true,
+    "@firebase/util@1.15.3": true,
+    "protobufjs@7.6.6": true
+  }
+}

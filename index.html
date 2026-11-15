@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plainly</title>
+  <meta name="description" content="Understand any document in plain words. Personal details stay on your device." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23163c32'/%3E%3Cpath d='M9 8h9a6 6 0 0 1 0 12h-4v4H9z' fill='%23f4efe4'/%3E%3Crect x='14' y='12' width='5' height='4' rx='1' fill='%23163c32'/%3E%3C/svg%3E" />
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="#" onclick="location.reload()"><span class="logo">P</span>Plainly</a>
+    <span id="device" class="pill"><i></i>Checking on-device AI…</span>
+    <button id="btn-history" class="ghost small-btn">My saved documents</button>
+  </header>
+
+  <main>
+    <section id="start">
+      <div class="hero">
+        <h1>Understand any document.<br /><em>Keep your details to yourself.</em></h1>
+        <p class="sub">Snap a bank letter, a lab report or a rental agreement. Plainly explains it in plain words, using Gemini Nano on your own device. If you want a translation or a deeper answer, the cloud only ever sees a copy with your personal details hidden.</p>
+      </div>
+
+      <div class="input card">
+        <div id="drop" class="drop">
+          <input type="file" id="file" accept="image/png,image/jpeg" hidden />
+          <label for="file" class="drop-label">
+            <span class="big">📷</span>
+            <b>Add a photo or screenshot</b>
+            <span class="muted small">JPEG or PNG. Read on this device.</span>
+          </label>
+          <div id="photo-preview" class="photo-preview"></div>
+        </div>
+        <div class="or">or</div>
+        <textarea id="paste" placeholder="Paste the text of a letter, notice, report or agreement…"></textarea>
+        <div class="run-row">
+          <button id="btn-run" class="primary">Explain it</button>
+          <span class="muted small">Nothing leaves your device unless you ask for the cloud.</span>
+        </div>
+      </div>
+
+      <div id="device-help" class="card note" hidden>
+        <b>On-device AI isn’t ready in this browser.</b>
+        <p class="small">Plainly uses Gemini Nano in Chrome 139+ on desktop. Turn on <code>chrome://flags/#prompt-api-for-gemini-nano-multimodal-input</code>, restart Chrome, then download the model (about 4 GB, one time).</p>
+        <button id="btn-download" class="ghost small-btn" hidden>Download on-device AI</button>
+        <p class="small muted">Without it, Plainly still hides personal details with its built-in rules and asks Gemini in the cloud using only the redacted copy.</p>
+      </div>
+
+      <h3 class="samples-h">Try a sample <span class="muted small">(made-up people and numbers)</span></h3>
+      <div id="samples" class="samples"></div>
+
+      <section class="how">
+        <div><span class="n">1</span><b>Read on your device</b><p>Gemini Nano reads the photo and the text inside Chrome.</p></div>
+        <div><span class="n">2</span><b>Hide what’s personal</b><p>Names, addresses, Aadhaar, PAN, account and phone numbers are found by on-device AI and exact rules, then swapped for placeholders.</p></div>
+        <div><span class="n">3</span><b>Explain in plain words</b><p>What it is, what to do, by when, how much, and what to watch out for.</p></div>
+        <div><span class="n">4</span><b>Cloud only when you ask</b><p>Translations into Indian languages and deeper questions go to Gemini in the cloud with the redacted copy. Answers are filled back in on your device.</p></div>
+      </section>
+    </section>
+
+    <section id="work" hidden>
+      <div class="work-top">
+        <button id="btn-new" class="ghost small-btn">← New document</button>
+        <ol id="steps" class="steps" hidden></ol>
+      </div>
+      <div class="cols">
+        <div class="col-doc">
+          <div class="card doc-card">
+            <div class="doc-head">
+              <div class="tabs">
+                <button class="view-tab on" data-view="doc">Your document</button>
+                <button class="view-tab" data-view="cloud">What the cloud would see</button>
+              </div>
+            </div>
+            <p id="hidden-count" class="small privacy-line"></p>
+            <pre id="doc" class="doc"></pre>
+            <pre id="cloud-view" class="doc cloud" hidden></pre>
+          </div>
+        </div>
+        <div class="col-exp">
+          <div class="lang-row">
+            <label>Explain in <select id="lang"></select></label>
+            <span id="lang-note" class="small muted"></span>
+          </div>
+          <div id="explain"></div>
+          <div class="card ask">
+            <h3>Ask about it</h3>
+            <div class="ask-row">
+              <input id="q" placeholder="e.g. What happens if I miss the deadline?" />
+            </div>
+            <div class="ask-btns">
+              <button id="ask-device" class="primary small-btn">Ask privately (on device)</button>
+              <button id="ask-cloud" class="ghost small-btn">Ask Gemini (cloud, redacted)</button>
+            </div>
+            <div id="answers"></div>
+          </div>
+          <div id="save-row" class="save-row" hidden>
+            <button id="btn-save" class="ghost small-btn">Save to my documents</button>
+            <span class="small muted">Only the redacted version is saved.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p>Plainly is not legal, financial or medical advice. It helps you understand a document; check anything important with the sender or a professional.</p>
+  </footer>
+
+  <dialog id="history">
+    <h2>My saved documents</h2>
+    <p class="small muted">Stored in Firestore under an anonymous account, with personal details already removed.</p>
+    <div id="history-list"></div>
+    <form method="dialog"><button class="primary small-btn">Close</button></form>
+  </dialog>
+  <div id="toast" class="toast" hidden></div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

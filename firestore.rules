@@ -1,0 +1,13 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Each anonymous user can read and write only their own redacted documents.
+    match /users/{uid}/docs/{docId} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['title', 'redactedText', 'explanation', 'hidden', 'createdAt'])
+        && request.resource.data.redactedText is string
+        && request.resource.data.redactedText.size() < 50000;
+    }
+  }
+}
