@@ -23,7 +23,7 @@ export async function deviceState(): Promise<DeviceState> {
   const lm = (self as unknown as { LanguageModel?: LM }).LanguageModel;
   if (!lm) return 'unsupported';
   try {
-    return await lm.availability({ expectedInputs: [{ type: 'text' }, { type: 'image' }] });
+    return await lm.availability({ expectedInputs: [{ type: 'text', languages: ['en'] }, { type: 'image' }], expectedOutputs: [{ type: 'text', languages: ['en'] }] });
   } catch {
     try {
       return await lm.availability();
